@@ -1,0 +1,49 @@
+---
+- name: Deploy Presence Application
+  hosts: master
+  become: false
+  tasks:
+    - name: Create namespace
+      command: kubectl apply -f kubernetes/namespace.yaml
+      args:
+        chdir: /path/to/project
+
+    - name: Create database secrets
+      command: kubectl apply -f kubernetes/db-secrets.yaml
+      args:
+        chdir: /path/to/project
+
+    - name: Deploy MySQL
+      command: kubectl apply -f kubernetes/mysql-pvc.yaml kubernetes/mysql-deployment.yaml kubernetes/mysql-service.yaml
+      args:
+        chdir: /path/to/project
+
+    - name: Wait for MySQL to be ready
+      command: kubectl rollout status deployment/mysql -n presence-app
+      args:
+        chdir: /path/to/project
+
+    - name: Deploy Backend
+      command: kubectl apply -f kubernetes/backend-deployment.yaml kubernetes/backend-service.yaml
+      args:
+        chdir: /path/to/project
+
+    - name: Wait for Backend to be ready
+      command: kubectl rollout status deployment/backend -n presence-app
+      args:
+        chdir: /path/to/project
+
+    - name: Deploy Frontend
+      command: kubectl apply -f kubernetes/frontend-deployment.yaml kubernetes/frontend-service.yaml
+      args:
+        chdir: /path/to/project
+
+    - name: Wait for Frontend to be ready
+      command: kubectl rollout status deployment/frontend -n presence-app
+      args:
+        chdir: /path/to/project
+
+    - name: Deploy Ingress
+      command: kubectl apply -f kubernetes/ingress.yaml
+      args:
+        chdir: /path/to/project

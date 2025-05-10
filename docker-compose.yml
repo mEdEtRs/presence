@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - presence-network
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=presence_db
+      - DB_USER=presence_user
+      - DB_PASSWORD=presence_password
+    restart: unless-stopped
+    networks:
+      - presence-network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=presence_db
+      - MYSQL_USER=presence_user
+      - MYSQL_PASSWORD=presence_password
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - presence-network
+
+networks:
+  presence-network:
+    driver: bridge
+
+volumes:
+  db-data:
